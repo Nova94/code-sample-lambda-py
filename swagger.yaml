@@ -1,0 +1,89 @@
+swagger: "2.0"
+info:
+  description: "This is a code sample focused around crud operations for a dynamodb backed key-value store"
+  version: "1.0"
+  title: "Code Sample Python Lambda"
+  contact:
+    email: "graylisa94@gmail.com"
+basePath: "/api/v1"
+schemes:
+- "https"
+
+paths:
+  /keys:
+    post:
+      summary: "Create a new key value item(s) in dynamodb"
+      description: "this endpoint called with of k-v in json, each k-v translates to item in dynamo"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Success"
+        400:
+          description: "Bad Request"
+        415:
+          description: "Unsupported Media Type"
+        500:
+          description: "Internal Server Error"
+    put:
+      summary: "updates/overrides perviously stored key"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Success"
+        400:
+          description: "Bad Request"
+        415:
+          description: "Unsupported Media Type"
+        500:
+          description: "Internal Server Error"
+    get:
+      summary: "get items from dynamodb"
+      description: "this endpoint called without {id} returns all items in dynamodb (until 1MB reached)"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Success"
+        500:
+          description: "Internal Server Error"
+
+  /keys/{id}:
+    get:
+      summary: "get item(s) from dynamodb"
+      description: "this endpoint called with {id} parameter returns item matching id"
+      produces:
+      - "application/json"
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        200:
+          description: "Success"
+
+        404:
+          description: "Not Found"
+        500:
+          description: "Internal Server Error"
+    delete:
+      summary: "removes key-value item from dynamodb"
+      description: "deletes the key-value item matching {id} path parameter and returns the attributes if found"
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        200:
+          description: "Success"
+        404:
+          description: "Not Found"
+        500:
+          description: "Internal Server Error"
