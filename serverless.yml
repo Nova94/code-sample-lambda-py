@@ -45,6 +45,27 @@ functions:
           path: 'key/{id}'
           method: get
 
+  kvCreate:
+    handler: handler.create
+    events:
+      - http:
+          path: 'key'
+          method: post
+
+  kvUpdate:
+    handler: handler.update
+    events:
+      - http:
+          path: 'key/{id}'
+          method: put
+
+  kvDelete:
+    handler: handler.delete
+    events:
+      - http:
+          path: 'key/{id}'
+          method: delete
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
