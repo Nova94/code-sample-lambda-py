@@ -35,7 +35,7 @@ def get(event, context):
                     keyName: params['id']
                 },
             )
-            logger.info('{}'.format(item))
+            logger.info(item)
 
             if 'Item' in item:
                 return Response(200, item['Item']).marshal()
@@ -44,7 +44,7 @@ def get(event, context):
 
         # TODO: handle when >1MB returned.
         items = table.scan()
-        logger.info('{}'.format(items['Items']))
+        logger.info(items['Items'])
         return Response(200, items['Items']).marshal()
     except ClientError as e:
         error = e.response['Error']
@@ -80,6 +80,7 @@ def put_items_from_body(errors, event):
     puts k-v items from body into dynamodb
     :param errors:
     :param event:
+    :param log:
     :return: LambdaProxyResponse
     """
     if event['body'] is not None:
@@ -87,7 +88,8 @@ def put_items_from_body(errors, event):
         with table.batch_writer() as batch:
             try:
                 for k, v in body.items():
-                    batch.put_item(Item={'Key': k, 'Value': v})
+                    res = batch.put_item(Item={'Key': k, 'Value': v})
+                    logger.info(res)
             except ClientError as e:
                 error = json.dumps(e.response['Error'])
                 logger.error(error)
@@ -110,7 +112,8 @@ def delete(event, context):
 
         if params is not None and 'id' in params:
             res = table.delete_item(Key={keyName: params['id']}, ReturnValues='ALL_OLD')
-            if res['Attributes'] == {}:
+            logger.info(res)
+            if 'Attributes' not in res or res['Attributes'] == {}:
                 return Response(404).marshal()
             return Response(200, body=res['Attributes']).marshal()
         else:
@@ -141,20 +144,24 @@ class Response(object):
     """
     LambdaProxyResponse object used to return responses more easily
     """
-    def __init__(self, statusCode, body=None, headers=None, isBase64Encoded=False):
+    def __init__(self, statusCode, body=None, headers=None, is_base64_encoded=False):
+        if headers is None:
+            headers = {}
+        if body is None:
+            body = {}
         self.statusCode = statusCode
         self.headers = headers
         self.body = body
-        self.isBase64Encoded = isBase64Encoded
+        self.isBase64Encoded = is_base64_encoded
 
     def marshal(self):
         """
         marshals Response into json
         :return: string
         """
-        return json.dumps({
+        return {
             'statusCode': self.statusCode,
             'headers': self.headers,
-            'body': self.body,
+            'body': json.dumps(self.body, cls=DynamoDBEncoder),
             'isBase64Encoded': self.isBase64Encoded
-        }, cls=DynamoDBEncoder)
+        }

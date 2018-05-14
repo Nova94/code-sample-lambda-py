@@ -9,6 +9,8 @@ This project is a code sample utilizing the following:
     - AWS lambda, API gateway, dynamodb, cloudformation
     
 
+#### example usages
+
 
 
 #### dynamodb

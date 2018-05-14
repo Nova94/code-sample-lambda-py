@@ -6,7 +6,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 provider:
   name: aws
   runtime: python3.6
-  stage: dev
+  stage: v1
   region: us-west-2
   memorySize: 128
   timeout: 2
@@ -14,7 +14,7 @@ provider:
 
   usagePlan:
     quota:
-      limit: 1000000
+      limit: 100000
       period: MONTH
     throttle:
       burstLimit: 200
@@ -29,11 +29,6 @@ provider:
         - 'dynamodb:DeleteItem'
       Resource:
         "Fn::GetAtt": [ KeyValueTable, Arn ]
-    - Effect: Allow
-      Action:
-        - sns:Publish
-      Resource:
-        "Ref": OnErrorTopic
   environment:
     tableName: ${self:provider.stage}-${self:service}-kv
     keyName: 'Key'
@@ -51,8 +46,6 @@ functions:
       - http:
           path: 'key/{id}'
           method: get
-    onError:
-      "Ref": OnErrorTopic
 
   kvCreate:
     handler: handler.create
@@ -61,8 +54,6 @@ functions:
           path: 'key'
           method: post
           cors: true
-    onError:
-      "Ref": OnErrorTopic
 
 
   kvUpdate: # dynamodb put_item overrides previous entry, but since K-V store only. it is ok to use create function
@@ -72,8 +63,6 @@ functions:
           path: 'key/{id}'
           method: put
           cors: true
-    onError:
-      "Ref": OnErrorTopic
 
   kvDelete:
     handler: handler.delete
@@ -82,8 +71,6 @@ functions:
           path: 'key/{id}'
           method: delete
           cors: true
-    onError:
-      "Ref": OnErrorTopic
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -137,11 +124,6 @@ resources:
         TimeToLiveSpecification:
           AttributeName: ${self:provider.environment.ttlName}
           Enabled: true
-    OnErrorTopic:
-      Type: "AWS::SNS::Topic"
-      Properties:
-        DisplayName: ${self:service}-OnError
-        TopicName: ${self:service}-${self:provider.stage}-on-error
   Outputs:
     UsersTableArn:
       Description: The ARN for kv table
