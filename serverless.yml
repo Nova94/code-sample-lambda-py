@@ -25,14 +25,16 @@ provider:
       Action:
         - 'dynamodb:Scan'
         - 'dynamodb:GetItem'
+        - 'dynamodb:BatchWriteItem'
         - 'dynamodb:PutItem'
+        - 'dynamodb:UpdateItem'
         - 'dynamodb:DeleteItem'
       Resource:
         "Fn::GetAtt": [ KeyValueTable, Arn ]
   environment:
     basepath: 'api/v1'
     tableName: ${self:provider.stage}-${self:service}-kv
-    keyName: 'Key'
+    keyName: 'Id'
     ttlName: 'Expires'
 
 # you can add packaging information here
@@ -61,8 +63,12 @@ functions:
 
 
   kvUpdate: # dynamodb put_item overrides previous entry, but since K-V store only. it is ok to use create function
-    handler: handler.create
+    handler: handler.update
     events:
+      - http:
+          path: ${self:provider.environment.basepath}/keys
+          method: put
+          cors: true
       - http:
           path: ${self:provider.environment.basepath}/keys/{id}
           method: put

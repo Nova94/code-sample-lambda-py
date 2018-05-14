@@ -72,7 +72,33 @@ def create(event, context):
         return Response(500, error).marshal()
     except TypeError as e:
         logger.error(e)
-        return Response(400).marshal()
+        return Response(400, 'Bad Request').marshal()
+
+
+def update(event, context):
+    errors = []
+    try:
+        pParams = event["pathParameters"]
+        qParams = event["queryStringParameters"]
+        if pParams is not None and qParams is not None and 'id' in pParams and 'value' in qParams:
+            res = table.put_item(Item={keyName: pParams['id'], 'Value': qParams['value']},
+                                 ConditionExpression="contains(Id, {})".format(pParams))
+            logger.info(res)
+            return Response(200).marshal()
+        elif 'headers' in event and 'Accept' in event['headers'] and event['headers']['Accept'] == 'application/json':
+            return put_items_from_body(errors, event)
+        else:
+            unaccept_content_type = Response(415, {"errors": "please use path/query param combo or application/json"}).marshal()
+            logger.error(unaccept_content_type)
+            return unaccept_content_type
+
+    except ClientError as e:
+        error = e.response['Error']
+        logger.error(error)
+        return Response(500, error).marshal()
+    except TypeError as e:
+        logger.error(e)
+        return Response(400, 'Bad Request').marshal()
 
 
 def put_items_from_body(errors, event):
@@ -88,7 +114,7 @@ def put_items_from_body(errors, event):
         with table.batch_writer() as batch:
             try:
                 for k, v in body.items():
-                    res = batch.put_item(Item={'Key': k, 'Value': v})
+                    res = batch.put_item(Item={keyName: k, 'Value': v})
                     logger.info(res)
             except ClientError as e:
                 error = json.dumps(e.response['Error'])
@@ -97,7 +123,7 @@ def put_items_from_body(errors, event):
 
         return Response(200, {'errors': errors}).marshal()
     else:
-        return Response(400).marshal()
+        return Response(400, {'errors': 'Bad Request'}).marshal()
 
 
 def delete(event, context):
