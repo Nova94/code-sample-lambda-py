@@ -10,6 +10,26 @@ This project is a code sample utilizing the following:
     
 
 
+
+#### dynamodb
+
+The following defines the schema of the dynamodb table:
+```yaml
+TableName: ${self:provider.stage}-${self:service}-kv
+AttributeDefinitions:
+  - AttributeName: 'Key'
+    AttributeType: S
+KeySchema:
+  - AttributeName: 'Key'
+    KeyType: HASH
+ProvisionedThroughput:
+  ReadCapacityUnits: 1
+  WriteCapacityUnits: 1
+TimeToLiveSpecification:
+  AttributeName: 'Expires'
+  Enabled: true
+```
+
 #### acceptance criteria
 Implement the requirements below to create a basic key/value service:
 * uses Python
