@@ -6,7 +6,9 @@ This project is a code sample utilizing the following:
     - python3.6
     - serverless
     - serverless-python-requirements
-    - AWS lambda, API gateway, dynamodb
+    - AWS lambda, API gateway, dynamodb, cloudformation
+    
+
 
 #### acceptance criteria
 Implement the requirements below to create a basic key/value service:
