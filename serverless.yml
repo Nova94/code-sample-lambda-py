@@ -13,13 +13,17 @@ provider:
     - Effect: Allow
       Action:
         - 'dynamodb:Query'
+        - 'dynamodb:Scan'
         - 'dynamodb:GetItem'
         - 'dynamodb:UpdateItem'
         - 'dynamodb:PutItem'
         - 'dynamodb:DeleteItem'
       Resource:
         "Fn::GetAtt": [ KeyValueTable, Arn ]
-
+  environment:
+    tableName: ${self:provider.stage}-${self:service}-kv
+    keyName: 'Key'
+    ttlName: 'Expires'
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
@@ -34,8 +38,12 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  kvGet:
+    handler: handler.get
+    events:
+      - http:
+          path: 'key/{id}'
+          method: get
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -78,16 +86,16 @@ resources:
       Properties:
         TableName: ${self:provider.stage}-${self:service}-kv
         AttributeDefinitions:
-          - AttributeName: 'Key'
+          - AttributeName: ${self:provider.environment.keyName}
             AttributeType: S
         KeySchema:
-          - AttributeName: 'Key'
+          - AttributeName: ${self:provider.environment.keyName}
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TimeToLiveSpecification:
-          AttributeName: 'Expires'
+          AttributeName: ${self:provider.environment.ttlName}
           Enabled: true
   Outputs:
     UsersTableArn:
