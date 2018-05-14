@@ -6,7 +6,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 provider:
   name: aws
   runtime: python3.6
-  stage: v1
+  stage: dev
   region: us-west-2
   memorySize: 128
   timeout: 2
