@@ -30,6 +30,7 @@ provider:
       Resource:
         "Fn::GetAtt": [ KeyValueTable, Arn ]
   environment:
+    basepath: 'api/v1'
     tableName: ${self:provider.stage}-${self:service}-kv
     keyName: 'Key'
     ttlName: 'Expires'
@@ -44,14 +45,17 @@ functions:
     handler: handler.get
     events:
       - http:
-          path: 'key/{id}'
+          path: ${self:provider.environment.basepath}/keys
+          method: get
+      - http:
+          path: ${self:provider.environment.basepath}/keys/{id}
           method: get
 
   kvCreate:
     handler: handler.create
     events:
       - http:
-          path: 'key'
+          path: ${self:provider.environment.basepath}/keys
           method: post
           cors: true
 
@@ -60,7 +64,7 @@ functions:
     handler: handler.create
     events:
       - http:
-          path: 'key/{id}'
+          path: ${self:provider.environment.basepath}/keys/{id}
           method: put
           cors: true
 
@@ -68,7 +72,7 @@ functions:
     handler: handler.delete
     events:
       - http:
-          path: 'key/{id}'
+          path: ${self:provider.environment.basepath}/keys/{id}
           method: delete
           cors: true
 
