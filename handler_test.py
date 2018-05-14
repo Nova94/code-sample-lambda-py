@@ -1,7 +1,7 @@
 import boto3
 import pytest
 import json
-from handler import get, DynamoDBEncoder
+import handler
 from os import environ
 from moto import mock_dynamodb2
 
@@ -45,33 +45,73 @@ def setup_table():
 def test_get():
     values = setup_table()
     # get all
-    res = get({'pathParameters': None}, {})
-    assert len(json.loads(res['body'])) == len(values)
+    res = json.loads(handler.get({'pathParameters': None}, {}))
+    assert len(res['body']) == len(values)
     assert res['statusCode'] == 200
 
     # get item
     for i, value in enumerate(values):
         key = environ['keyName'] + str(i)
-        res = get({'pathParameters': {'id': key}}, {})
-        body = json.loads(res['body'])
-        assert len(body) == 2
+        res = json.loads(handler.get({'pathParameters': {'id': key}}, {}))
+        res['body']
+        assert len(res['body']) == 2
         assert res['statusCode'] == 200
 
     # no existing item
-    res = get({'pathParameters': {'id': 'NoneExisting'}}, {})
+    res = json.loads(handler.get({'pathParameters': {'id': 'NoneExisting'}}, {}))
     assert res['statusCode'] == 404
 
 
-
 @mock_dynamodb2
-def test_add():
-    pass
+def test_create():
+    values = setup_table()
+    res = json.loads(handler.create({'headers': {'Accept': 'application/json'}, 'body': json.dumps({'list': ['one', 'two']})}, {}))
+    assert res['statusCode'] == 200
+    assert res['body']['errors'] == []
 
+    # check that it was added
+    res = json.loads(handler.get({'pathParameters': None}, {}))
+    assert len(res['body']) == len(values) + 1
+    assert res['statusCode'] == 200
 
-@mock_dynamodb2
-def test_update():
-    pass
+    # multiple key values added
+    res = json.loads(handler.create({'headers': {'Accept': 'application/json'},
+                                     'body': json.dumps({'list': ['one', 'two'], 'dict': {"hello": "world"}})}, {}))
+    assert res['statusCode'] == 200
+    assert res['body']['errors'] == []
+
+    # check that overrides list and dict was added
+    res = json.loads(handler.get({'pathParameters': None}, {}))
+    assert len(res['body']) == len(values) + 2
+    assert res['statusCode'] == 200
+
+    # returns 415 without application/json header
+    res = json.loads(handler.create({'body': json.dumps({'list': ['one', 'two']})}, {}))
+    assert res['statusCode'] == 415
+
+    # returns 400 with application/json header and bad json
+    res = json.loads(handler.create({'headers': {'Accept': 'application/json'}, 'body': {'list': ['one', 'two']}}, {}))
+    assert res['statusCode'] == 400
 
 @mock_dynamodb2
 def test_delete():
-    pass
+    values = setup_table()
+    res = json.loads(
+        handler.create({'headers': {'Accept': 'application/json'}, 'body': json.dumps({'list': ['one', 'two']})}, {}))
+    assert res['statusCode'] == 200
+    assert res['body']['errors'] == []
+
+    # check that it was added
+    res = json.loads(handler.get({'pathParameters': None}, {}))
+    assert len(res['body']) == len(values) + 1
+    assert res['statusCode'] == 200
+
+    # delete key0
+    res = json.loads(handler.delete({'pathParameters': {'id': 'Key0'}}, {}))
+    assert res['statusCode'] == 200
+    assert res['body'] == {'Key': 'Key0', 'Value': 'world'}
+
+    # delete key0
+    res = json.loads(handler.delete({'pathParameters': {'id': 'None'}}, {}))
+    assert res['statusCode'] == 404
+    assert res['body'] is None

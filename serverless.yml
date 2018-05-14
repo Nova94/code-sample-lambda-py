@@ -8,34 +8,41 @@ provider:
   runtime: python3.6
   stage: dev
   region: us-west-2
+  memorySize: 128
+  timeout: 2
+  logRetentionInDays: 7
+
+  usagePlan:
+    quota:
+      limit: 1000000
+      period: MONTH
+    throttle:
+      burstLimit: 200
+      rateLimit: 100
 
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - 'dynamodb:Query'
         - 'dynamodb:Scan'
         - 'dynamodb:GetItem'
-        - 'dynamodb:UpdateItem'
         - 'dynamodb:PutItem'
         - 'dynamodb:DeleteItem'
       Resource:
         "Fn::GetAtt": [ KeyValueTable, Arn ]
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource:
+        "Ref": OnErrorTopic
   environment:
     tableName: ${self:provider.stage}-${self:service}-kv
     keyName: 'Key'
     ttlName: 'Expires'
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
 
 # you can add packaging information here
-#package:
-#  include:
-#    - include-me.py
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
-#    - exclude-me-dir/**
+package:
+  include:
+    - handler.py
 
 functions:
   kvGet:
@@ -44,6 +51,8 @@ functions:
       - http:
           path: 'key/{id}'
           method: get
+    onError:
+      "Ref": OnErrorTopic
 
   kvCreate:
     handler: handler.create
@@ -51,13 +60,20 @@ functions:
       - http:
           path: 'key'
           method: post
+          cors: true
+    onError:
+      "Ref": OnErrorTopic
 
-  kvUpdate:
-    handler: handler.update
+
+  kvUpdate: # dynamodb put_item overrides previous entry, but since K-V store only. it is ok to use create function
+    handler: handler.create
     events:
       - http:
           path: 'key/{id}'
           method: put
+          cors: true
+    onError:
+      "Ref": OnErrorTopic
 
   kvDelete:
     handler: handler.delete
@@ -65,6 +81,9 @@ functions:
       - http:
           path: 'key/{id}'
           method: delete
+          cors: true
+    onError:
+      "Ref": OnErrorTopic
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -118,6 +137,11 @@ resources:
         TimeToLiveSpecification:
           AttributeName: ${self:provider.environment.ttlName}
           Enabled: true
+    OnErrorTopic:
+      Type: "AWS::SNS::Topic"
+      Properties:
+        DisplayName: ${self:service}-OnError
+        TopicName: ${self:service}-${self:provider.stage}-on-error
   Outputs:
     UsersTableArn:
       Description: The ARN for kv table
