@@ -17,7 +17,37 @@ The following should be installed before building the project.
 
 deploy with `make`  (runs unit tests first) or `make deploy` - it will deploy a cloudformation stack using serverless
 
-End with an example of getting some data out of the system or using it for a little demo
+example output _(don't worry this stack no longer exists...)_
+```
+Service Information
+service: code-sample-lambda-py
+stage: dev
+region: us-west-2
+stack: code-sample-lambda-py-dev
+api keys:
+  test-key: yzd6JQJGN9Di4Q2t9jlB6TgUFSF2E7k7zd8lziz2
+endpoints:
+  GET - https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys
+  GET - https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/{id}
+  POST - https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys
+  PUT - https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys
+  PUT - https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/{id}
+  DELETE - https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/{id}
+functions:
+  kvGet: code-sample-lambda-py-dev-kvGet
+  kvCreate: code-sample-lambda-py-dev-kvCreate
+  kvUpdate: code-sample-lambda-py-dev-kvUpdate
+  kvDelete: code-sample-lambda-py-dev-kvDelete
+
+Stack Outputs
+UsersTableArn: arn:aws:dynamodb:us-west-2:271741776246:table/dev-code-sample-lambda-py-kv
+KvGetLambdaFunctionQualifiedArn: arn:aws:lambda:us-west-2:271741776246:function:code-sample-lambda-py-dev-kvGet:29
+KvDeleteLambdaFunctionQualifiedArn: arn:aws:lambda:us-west-2:271741776246:function:code-sample-lambda-py-dev-kvDelete:27
+KvUpdateLambdaFunctionQualifiedArn: arn:aws:lambda:us-west-2:271741776246:function:code-sample-lambda-py-dev-kvUpdate:27
+ServiceEndpoint: https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev
+ServerlessDeploymentBucketName: code-sample-lambda-py-de-serverlessdeploymentbuck-1rxqoz4dti45m
+KvCreateLambdaFunctionQualifiedArn: arn:aws:lambda:us-west-2:271741776246:function:code-sample-lambda-py-dev-kvCreate:27
+```
 
 `make remove` - destroys the cloudformation stack
 
@@ -25,12 +55,28 @@ End with an example of getting some data out of the system or using it for a lit
 
 simply run - `make test` for unit tests
 
-run the following command after a deploy to run through acceptance tests.
+run the following command after a deploy to run through acceptance tests/demo.
 
 Service Endpoint and test-key are outputted during the deploy phase.
 
 ```
 make acceptance endpoint={Service Endpoint} apikey={test-key}
+```
+
+example output
+```
+acceptance.py 
+testing POST /api/v1/keys
+POST 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys json response {'errors': []}
+testing GET /api/v1/keys/{id}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_string json response {'Id': 'key_string', 'Value': 'hello world!'}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_integer json response {'Id': 'key_integer', 'Value': 123}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_float json response {'Id': 'key_float', 'Value': 123.45}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_bytes json response {'Id': 'key_bytes', 'Value': '8 bytes walk into a bar, the bartenders asks "What will it be?" One of them says, "Make us a double."'}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_bool json response {'Id': 'key_bool', 'Value': False}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_list json response {'Id': 'key_list', 'Value': ['funny', 'joke', 'here']}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_set json response {'Id': 'key_set', 'Value': [1]}
+GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/key_object json response {'Id': 'key_object', 'Value': {'key_integer': 123, 'key_float': 123.45, 'key_string': 'hello world!', 'key_list': ['funny', 'joke', 'here'], 'key_bytes': '8 bytes walk into a bar, the bartenders asks "What will it be?" One of them says, "Make us a double."', 'key_set': [1], 'key_bool': False, 'key_recursion': True}}
 ```
 
 ## Built With

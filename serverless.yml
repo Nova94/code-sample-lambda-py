@@ -44,7 +44,7 @@ provider:
 package:
   include:
     - handler.py
-    - helpers.py
+    - helpers/
 
 functions:
   kvGet:

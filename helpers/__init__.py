@@ -1,5 +1,7 @@
 import json
 import decimal
+from os import environ
+import boto3
 from boto3.dynamodb.types import Decimal, Binary
 
 
@@ -62,3 +64,37 @@ class Response(object):
             'body': json.dumps(self.body, cls=DynamoDBEncoder),
             'isBase64Encoded': self.isBase64Encoded
         }
+
+
+def setup_table(key_name):
+    client = boto3.client('dynamodb')
+    response = client.create_table(
+        AttributeDefinitions=[
+            {
+                'AttributeName': 'Key',
+                'AttributeType': 'S'
+            },
+        ],
+        TableName=environ['tableName'],
+        KeySchema=[
+            {
+                'AttributeName': 'Key',
+                'KeyType': 'HASH'
+            },
+        ],
+        ProvisionedThroughput={
+            'ReadCapacityUnits': 1,
+            'WriteCapacityUnits': 1
+        }
+    )
+
+    assert response['TableDescription']['TableName'] == 'test'
+
+    dynamo = boto3.resource('dynamodb')
+    test = dynamo.Table(environ['tableName'])
+
+    values = ['world', 123, b'hello', True, None, ['hello', 'world'], {'hello', 'world'}, {'Hello': 'World'}]
+    for i, value in enumerate(values):
+        key = environ['keyName'] + str(i)
+        test.put_item(Item={key_name: key, 'Value': value})
+    return values
