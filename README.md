@@ -89,10 +89,6 @@ GET 200 https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev/api/v1/keys/k
 
 Not really open for contributing at this time. It is just a code sample for people to look at.
 
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
 ## Authors
 * **[Lisa Gray](linkedin.com/in/gray7)** 
 
