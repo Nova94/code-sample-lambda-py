@@ -13,6 +13,14 @@ The following should be installed before building the project.
 * [serverless](https://serverless.com/framework/docs/getting-started/) >=1.12.0 <2.0.0 
 * [serverless-python-requirements](https://github.com/UnitedIncome/serverless-python-requirements#install)
 
+## Installation
+
+Install package dependencies with.
+
+```
+$ pip install -r requirements.txt
+```
+
 ## Deployment
 
 deploy with `make`  (runs unit tests first) or `make deploy` - it will deploy a cloudformation stack using serverless
