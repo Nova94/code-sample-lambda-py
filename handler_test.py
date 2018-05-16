@@ -5,8 +5,9 @@ import handler
 from os import environ
 from moto import mock_dynamodb2
 
-
 keyName = environ['keyName']
+
+
 def setup_table():
     client = boto3.client('dynamodb')
     response = client.create_table(
@@ -80,7 +81,7 @@ def test_create():
 
     # multiple key values added
     res = handler.create({'headers': {'Accept': 'application/json'},
-                                     'body': json.dumps({'list': ['one', 'two'], 'dict': {"hello": "world"}})}, {})
+                          'body': json.dumps({'list': ['one', 'two'], 'dict': {"hello": 1.0}})}, {})
     print(res)
     assert res['statusCode'] == 200
     assert json.loads(res['body'])['errors'] == []
