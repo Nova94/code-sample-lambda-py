@@ -49,19 +49,20 @@ ServerlessDeploymentBucketName: code-sample-lambda-py-de-serverlessdeploymentbuc
 KvCreateLambdaFunctionQualifiedArn: arn:aws:lambda:us-west-2:271741776246:function:code-sample-lambda-py-dev-kvCreate:27
 ```
 
-`make remove` - destroys the cloudformation stack
+`$ make remove` - destroys the cloudformation stack
 
 ## Running the tests
 
-simply run - `make test` for unit tests
+Run `$ make test` for unit tests
 
-run the following command after a deploy to run through acceptance tests/demo.
-
-Service Endpoint and test-key are outputted during the deploy phase.
-
+Run the following command after a deploy to run through acceptance tests/demo.
+Service Endpoint and test-key are outputted during the deploy phase. 
 ```
-make acceptance endpoint={Service Endpoint} apikey={test-key}
-```
+$ make acceptance endpoint={Service Endpoint} apikey={test-key}
+
+example
+$ make acceptance endpoint=https://gvzb8hkoc1.execute-api.us-west-2.amazonaws.com/dev apikey=Bwdy2iIYHR4xPj3VEfvFl6YqMKytUBY15HIsGTe3
+``` 
 
 example output
 ```
