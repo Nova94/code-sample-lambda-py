@@ -80,19 +80,7 @@ def update(event, context):
     try:
         p_params = event["pathParameters"]
         q_params = event["queryStringParameters"]
-        if p_params is not None and q_params is not None and 'id' in p_params and 'value' in q_params:
-            res = table.put_item(Item={keyName: p_params['id'], 'Value': q_params['value']},
-                                 ExpressionAttributeValues={':id_val': p_params['id']},
-                                 ConditionExpression=f"contains(Id, :id_val)")
-            logger.info(res)
-            return Response(hStat.OK).marshal()
-        elif 'headers' in event and 'Accept' in event['headers'] and event['headers']['Accept'] == 'application/json':
-            return put_items_from_body(errors, event)
-        else:
-            unaccept_content_type = Response(hStat.UNSUPPORTED_MEDIA_TYPE, {
-                "errors": "please use path/query param combo or application/json"}).marshal()
-            logger.error(unaccept_content_type)
-            return unaccept_content_type
+        return update_items(errors, event, p_params, q_params)
 
     except ClientError as e:
         error = e.response['Error']
@@ -101,6 +89,22 @@ def update(event, context):
     except TypeError as e:
         logger.error(e)
         return Response(hStat.BAD_REQUEST, 'Bad Request').marshal()
+
+
+def update_items(errors, event, p_params, q_params):
+    if p_params is not None and q_params is not None and 'id' in p_params and 'value' in q_params:
+        res = table.put_item(Item={keyName: p_params['id'], 'Value': q_params['value']},
+                             ExpressionAttributeValues={':id_val': p_params['id']},
+                             ConditionExpression=f"contains(Id, :id_val)")
+        logger.info(res)
+        return Response(hStat.OK).marshal()
+    elif 'headers' in event and 'Accept' in event['headers'] and event['headers']['Accept'] == 'application/json':
+        return put_items_from_body(errors, event)
+    else:
+        unaccept_content_type = Response(hStat.UNSUPPORTED_MEDIA_TYPE, {
+            "errors": "please use path/query param combo or application/json"}).marshal()
+        logger.error(unaccept_content_type)
+        return unaccept_content_type
 
 
 def put_items_from_body(errors, event):
